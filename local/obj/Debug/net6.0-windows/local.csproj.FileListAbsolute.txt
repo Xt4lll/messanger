@@ -23,3 +23,5 @@ D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\chatPage.g.cs
 D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\chatPage.baml
 D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\serverPage.g.cs
 D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\serverPage.baml
+D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\mainPage.g.cs
+D:\Users\keylo\source\repos\local\local\obj\Debug\net6.0-windows\mainPage.baml

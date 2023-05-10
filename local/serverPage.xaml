@@ -22,7 +22,7 @@
         <ListBox x:Name="messagesLbx" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <TextBox x:Name="messageTbx" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Button x:Name="sendBtn" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Content="send" Grid.Column="2" Click="sendBtn_Click_1"/>
-        <Button x:Name="quitBtn" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Content="quit"/>
+        <Button x:Name="quitBtn" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Content="quit" Click="quitBtn_Click"/>
         <Frame x:Name="serverFrame" NavigationUIVisibility="Hidden" Grid.RowSpan="2" Grid.ColumnSpan="3"/>
     </Grid>
 </Page>

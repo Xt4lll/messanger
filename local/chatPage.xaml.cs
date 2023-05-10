@@ -21,20 +21,20 @@ namespace local
     public partial class chatPage : Page
     {
         private Socket socket;
-        /*private CancellationTokenSource isWorking;*/
+        private CancellationTokenSource isWorking = new CancellationTokenSource();
         public chatPage()
         {
             InitializeComponent();
 
-            usersLbx.ItemsSource = MainWindow.users;
+            usersLbx.ItemsSource = mainPage.users;
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect(MainWindow.ip, 8888);
+            socket.Connect(mainPage.ip, 8888);
             RecieveMessage();
         }
 
         private async Task RecieveMessage()
         {
-            while (true)
+            if (!isWorking.Token.IsCancellationRequested)
             {
                 byte[] bytes = new byte[1024];
                 await socket.ReceiveAsync(bytes, SocketFlags.None);
@@ -46,19 +46,32 @@ namespace local
 
         private async Task sendMsg(string msg)
         {
+            if (!isWorking.Token.IsCancellationRequested)
+            {
                 byte[] bytes = Encoding.UTF8.GetBytes(msg);
                 await socket.SendAsync(bytes, SocketFlags.None);
+            }
         }
 
         private void sendBtn_Click(object sender, RoutedEventArgs e)
         {
-            sendMsg(messageTbx.Text);
+            if (messageTbx.Text == "/disconnect")
+            {
+                quitBtn_Click(sender, e);
+            }
+            else
+            {
+                string msg = $"[{DateTime.Now}]: {messageTbx.Text}";
+                sendMsg(msg);
+            }
         }
 
         private void quitBtn_Click(object sender, RoutedEventArgs e)
         {
-            /*isWorking.Cancel();*/
-
+            CancellationToken token = isWorking.Token;
+            isWorking.Cancel();
+            socket.Close();
+            chatFrame.Content = new mainPage();
         }
     }
 }

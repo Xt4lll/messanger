@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,18 +18,19 @@ using System.Windows.Shapes;
 
 namespace local
 {
-    
+
     public partial class serverPage : Page
     {
 
         private Socket Socket;
+        private CancellationTokenSource isWorking = new CancellationTokenSource();
 
         private List<Socket> clients = new List<Socket>();
         public serverPage()
         {
             InitializeComponent();
 
-            usersLbx.ItemsSource = MainWindow.users;
+            usersLbx.ItemsSource = mainPage.users;
             IPEndPoint ipPoint = new IPEndPoint(IPAddress.Any, 8888);
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.Bind(ipPoint);
@@ -39,7 +41,7 @@ namespace local
 
         private async Task ListenToClients()
         {
-            while (true)
+            if (!isWorking.Token.IsCancellationRequested)
             {
                 var client = await Socket.AcceptAsync();
                 clients.Add(client);
@@ -49,13 +51,12 @@ namespace local
 
         private async Task RecieveMessage(Socket client)
         {
-            while (true)
+            if (!isWorking.Token.IsCancellationRequested)
             {
                 byte[] bytes = new byte[1024];
                 await client.ReceiveAsync(bytes, SocketFlags.None);
                 string message = Encoding.UTF8.GetString(bytes);
-
-                messagesLbx.Items.Add($"[Сообщение от {client.RemoteEndPoint}]: {message}");
+                messagesLbx.Items.Add($"[{DateTime.Now}]: {message}");
 
                 foreach (var item in clients)
                 {
@@ -66,18 +67,27 @@ namespace local
 
         private async Task SendMessage(Socket client, string message)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(message);
-            await client.SendAsync(bytes, SocketFlags.None);
-        }
-
-        private async Task sendMsg(string msg)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(msg);
-            await Socket.SendAsync(bytes, SocketFlags.None);
+            if (!isWorking.Token.IsCancellationRequested)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(message);
+                await client.SendAsync(bytes, SocketFlags.None);
+            }
         }
         private void sendBtn_Click_1(object sender, RoutedEventArgs e)
         {
-            sendMsg(messageTbx.Text);
+            string msg = $"[{DateTime.Now}]: {messageTbx.Text}";
+            foreach (var item in clients)
+            {
+                SendMessage(item, msg);
+            }
+            messagesLbx.Items.Add(msg);
+        }
+
+        private void quitBtn_Click(object sender, RoutedEventArgs e)
+        {
+            CancellationToken token = isWorking.Token;
+            isWorking.Cancel();
+            Socket.Close();
         }
     }
 }
