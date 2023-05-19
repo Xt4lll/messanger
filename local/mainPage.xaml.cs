@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,9 +16,6 @@ using System.Windows.Shapes;
 
 namespace local
 {
-    /// <summary>
-    /// Логика взаимодействия для mainPage.xaml
-    /// </summary>
     public partial class mainPage : Page
     {
         public static string ip { get; set; }
@@ -30,16 +28,15 @@ namespace local
 
         private void joinBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (nameTbx.Text != "" && ipTbx.Text != "")
+            Regex validateIPv4Regex = new Regex("^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+            if (nameTbx.Text != "" && ipTbx.Text != "" && validateIPv4Regex.IsMatch(ipTbx.Text) == true)
             {
                 ip = ipTbx.Text;
                 users.Add(nameTbx.Text);
                 menuFrame.Content = new chatPage();
             }
             else
-            {
                 MessageBox.Show("неправильно введены данные");
-            }
         }
 
         private void createBtn_Click(object sender, RoutedEventArgs e)
@@ -49,11 +46,8 @@ namespace local
                 users.Add(nameTbx.Text);
                 menuFrame.Content = new serverPage();
             }
-        }
-
-        private void ipTbx_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            //e.Handled = !Regex.IsMatch(e.Text, @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b");
+            else
+                MessageBox.Show("неправильно введены данные");
         }
     }
 }

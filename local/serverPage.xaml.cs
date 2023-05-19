@@ -30,7 +30,7 @@ namespace local
         {
             InitializeComponent();
 
-            usersLbx.ItemsSource = mainPage.users;
+            //usersLbx.ItemsSource = currentUsers;
             IPEndPoint ipPoint = new IPEndPoint(IPAddress.Any, 8888);
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.Bind(ipPoint);
@@ -39,28 +39,66 @@ namespace local
             ListenToClients();
         }
 
+        private async Task SendClients(Socket client)
+        {
+            if (!isWorking.IsCancellationRequested)
+            {
+                foreach (var user in mainPage.users)
+                {
+                    string u = "/u" + user;
+                    byte[] name = Encoding.UTF8.GetBytes(u);
+                    await client.SendAsync(name, SocketFlags.None);
+                }
+            }
+        }
+
+        /*private async Task GetClients(Socket client)
+        {
+            if (!isWorking.IsCancellationRequested)
+            {
+                byte[] bytes = new byte[1024];
+                await client.ReceiveAsync(bytes, SocketFlags.None);
+                string nameStr = Encoding.UTF8.GetString(bytes);
+                usersLbx.Items.Add(nameStr);
+
+                foreach (var item in clients)
+                {
+                    SendClients(item);
+                }
+            }
+        }*/
+
         private async Task ListenToClients()
         {
-            if (!isWorking.Token.IsCancellationRequested)
+            while (!isWorking.IsCancellationRequested)
             {
                 var client = await Socket.AcceptAsync();
                 clients.Add(client);
                 RecieveMessage(client);
+                SendClients(client);
             }
         }
 
         private async Task RecieveMessage(Socket client)
         {
-            if (!isWorking.Token.IsCancellationRequested)
+            while (!isWorking.Token.IsCancellationRequested)
             {
                 byte[] bytes = new byte[1024];
                 await client.ReceiveAsync(bytes, SocketFlags.None);
                 string message = Encoding.UTF8.GetString(bytes);
-                messagesLbx.Items.Add($"[{DateTime.Now}]: {message}");
-
-                foreach (var item in clients)
+                if (message.Contains("/u"))
                 {
-                    SendMessage(item, message);
+                    char[] r = { '/', 'u' };
+                    usersLbx.Items.Add(message.TrimStart(r));
+                    //SendClients(client);
+                }
+                else
+                {
+                    messagesLbx.Items.Add($"[{DateTime.Now}]: {message}");
+                    foreach (var item in clients)
+                    {
+                        SendMessage(item, message);
+                    }
                 }
             }
         }
@@ -85,9 +123,10 @@ namespace local
 
         private void quitBtn_Click(object sender, RoutedEventArgs e)
         {
-            CancellationToken token = isWorking.Token;
+            isWorking = new CancellationTokenSource();
             isWorking.Cancel();
             Socket.Close();
+            serverFrame.Content = new mainPage();
         }
     }
 }
